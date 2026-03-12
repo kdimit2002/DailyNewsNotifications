@@ -8,15 +8,15 @@ from dateparser.search import search_dates
 import datetime
 
 
-EN_MINUTES_BEFORE = [
-    re.compile(r"\b\d+\s*(minute|minutes|min|mins)\s+ago\b", re.IGNORECASE),
-    re.compile(r"\b\d+m\s+ago\b", re.IGNORECASE),
-]
+EN_MINUTES_BEFORE = re.compile(
+    r"\b\d+\s*(?:minute|minutes|min|mins)\s+ago\b|\b\d+\s*m\s+ago\b",
+    re.IGNORECASE
+)
 
-GR_MINUTES_BEFORE = [
-    re.compile(r"\bπριν(?:\s+από)?\s+\d+\s+λεπτό\b", re.IGNORECASE),
-    re.compile(r"\bπριν(?:\s+από)?\s+\d+\s+λεπτά\b", re.IGNORECASE),
-]
+GR_MINUTES_BEFORE = re.compile(
+    r"\bπριν(?:\s+από|\s+απο)?\s+\d+\s+λεπ(?:τό|το|τά|τα)\b",
+    re.IGNORECASE
+)
 
 def contains_exact_minutes_before(text):
     return any(p.search(text) for p in EN_MINUTES_BEFORE + GR_MINUTES_BEFORE)
@@ -76,18 +76,18 @@ def findRecentPostDate(text):
 
 def findImportandKeywords(soup: BeautifulSoup):        
     # Search by text with the help of lambda function
-    soupText = ""
+    soup_text = ""
     print(soup.text +"\n")
     # we will search the tag with in which text is same as given text
     for s in soup.strings:
         text: bs4.element.NavigableString = s
 
         # Add a space before each start of a new text bettween elements 
-        soupText = soupText + " " + text
+        soup_text = soup_text + " " + text
 
     
-    print(soupText)
-    print(findRecentPostDate(soupText))
+    print(soup_text)
+    print(findRecentPostDate(soup_text))
     
 
 
