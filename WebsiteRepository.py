@@ -17,7 +17,8 @@ def save(json_object: dict, website: Website):
     redis_client.json().set(key,'$',json_object)
 
 
-# def exists_by_url(url):
+def exists_by_url(url):
+    return False
 
 
 
