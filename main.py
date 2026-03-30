@@ -88,8 +88,10 @@ def main():
             # Find the internal urls for a website we are searching 
             internal_urls: set[str] = website.find_links_to_check(web_driver)
 
-            # Make a list to store each internal url's datetime
-            urls_posted_dates: list[datetime.datetime] = []
+            # Make a dictionary to store each internal url's datetime
+            urls_posted_dates = {}
+
+
 
             # Iterate over each internal url of the website
             for url in internal_urls:
@@ -103,7 +105,7 @@ def main():
                # If posted time was found for the url add it to the list    
                if posted_time is not None:
                     print(posted_time)
-                    urls_posted_dates.append(posted_time)
+                    urls_posted_dates[url] = posted_time
 
                # Clean internal's website object from memory  
                del internal_website
@@ -115,10 +117,11 @@ def main():
                 continue
             
             # Todo: Check whether to use <= from now or < or something else
-            latest_before_now = max(d for d in urls_posted_dates if d < datetime.datetime.now()) # Todo: must check also timezones that are diferent from my country
+            latest_before_now = max(d for d in urls_posted_dates.values if d < datetime.datetime.now()) # Todo: must check also timezones that are diferent from my country
 
             # Remove from links history those that hold datetime that is equal to now in order to check it again later
-            website.internal_links_history = [d for d in urls_posted_dates if d != datetime.datetime.now()] 
+            if website.internal_links_history is not None:
+                website.internal_links_history = set([url for url in website.internal_links_history if urls_posted_dates.get(url) != datetime.datetime.now()])
 
             if website.last_post_date is not None and website.last_post_date < latest_before_now : 
                  # Todo: notify code

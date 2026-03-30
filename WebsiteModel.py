@@ -42,13 +42,13 @@ class MainWebsite(Website):
     def __init__(self, url):
         self.id = None
         super().__init__(url)
-        self.internal_links_history: set[str] = None
+        self.internal_links_history = None
         self.links_to_check = None
         self.last_post_date: datetime.datetime = None
 
 
     # TODO: Instead of using list I must change functionality to using sets
-    def find_links_to_check(self, web_driver: Web_Driver_Service) -> list[str]:
+    def find_links_to_check(self, web_driver: Web_Driver_Service) -> set[str]:
 
         # Fetches html file
         self.soup = self.createSoup(web_driver= web_driver)
@@ -64,6 +64,7 @@ class MainWebsite(Website):
 
             # Remove links that have already been checked
             if  self.internal_links_history is not None: # When the Website object is first constructed we store all internal links
+                breakpoint()
                 links_set = links_set - self.internal_links_history
 
         self.__find_internal_links_history()
