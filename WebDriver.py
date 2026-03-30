@@ -41,5 +41,3 @@ class Web_Driver_Service:
         self.opened_pages_count = 0
         return driver
     
-    
-web_driver: Web_Driver_Service = Web_Driver_Service()

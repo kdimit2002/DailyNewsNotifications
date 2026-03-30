@@ -31,11 +31,6 @@ def changeDateSyntax(text: str) -> str:
     pattern = r'\b\d{2}\.\d{2}\.(?:\d{2}|\d{4})\b' # changes both yy and yyyy date formats
     return re.sub(pattern, lambda m: m.group().replace('.', '/'), text)
 
-#  Ignore datetime values that has the excact datetime as now
-def isValidDateTime(dt: datetime.datetime):
-    now = datetime.datetime.now()
-    return not (dt.hour == now.hour and dt.minute == now.minute)
-
 # Check if there is a new Post by checking dates of the page
 def findRecentPostDate(internal_website: InternalWebsite):
     text = internal_website.soup
@@ -63,7 +58,7 @@ def findRecentPostDate(internal_website: InternalWebsite):
                 date_text = d
                 continue
 
-            # Create a lambda func that will check if text date value is an absolute value
+            # Create a lambda func that will check if text date value is an absolute value with date and time
             is_absolute_datetime = lambda text: (
                 dateparser.parse(
                     text,
@@ -86,7 +81,7 @@ def findRecentPostDate(internal_website: InternalWebsite):
             # Will save the dates found in the html
 
             # Find if it's a post datetime value. 
-            if isValidDateTime(html_absolute_date) and (is_absolute_datetime(date_text) or contains_exact_minutes_before(date_text)) :
+            if is_absolute_datetime(date_text) or contains_exact_minutes_before(date_text) :
                 absolute_post_dates.append(html_absolute_date)
 
     latest_before_now: datetime.datetime = None

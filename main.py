@@ -16,6 +16,10 @@ import WebsiteRepository
 from WebsiteModel import MainWebsite, InternalWebsite
 from WebDriver import Web_Driver_Service
 
+
+
+debug = 0 
+
 # Note: better to have a func waiting an api response when a url is added
 
 
@@ -45,42 +49,6 @@ def CleanSoup(content):
     return content
 
 
-# def createSoup(url):
-# #     """Returns true if the webpage was changed, otherwise false."""
-# #     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
-# #     'Pragma': 'no-cache', 'Cache-Control': 'no-cache'}
-# #     response = requests.get(url, headers=headers)
-
-#     # 1. Μπαίνεις στο site "σαν άνθρωπος"
-#     driver = Driver(uc=True) 
-#     driver.get(url)
-
-#     # 2. Παίρνεις το HTML αφού έχει φορτώσει η σελίδα
-#     html = driver.page_source
-#         # processed_response_html = process_html(response.text)
-
-#     soup = BeautifulSoup(html, features="html.parser")
-    
-#     # make the html look good
-#     soup.prettify()
-
-#     # remove script tags
-#     for s in soup.select('script'):
-#         s.extract()
-
-#     # remove meta tags 
-#     for s in soup.select('meta'):
-#         s.extract()
-
-#     for a in soup.find_all('a', href=True):
-#         print("Found the URL:", a['href'])
-
-#     driver.quit()
-#     # Return soup object
-#     return soup
-
-
-
 def getUrls():
     # redisConnection = redis.Redis().from_pool(WebsiteRepository.redisPool)
     urls = WebsiteRepository.redis_client.smembers("Websites")
@@ -98,62 +66,67 @@ def main():
         print(url)
     
     website_list = []
-    counter = 0
-    for url in urls: # Must read each time from 
-        counter+=1
-        # s = requests.Session()
-        # s.cookies.update({'__hs_opt_out': 'no'})
-        # s.get(url)  # Automatically uses the session cookies
-        # soup = createSoup(url)
 
+    for url in urls: # Must read each time from 
+        
         # Todo If website already exists get the newest links only
         if not WebsiteRepository.exists_by_url(url) :
             # website: Website = Website(url = url,soup = soup)
             website: MainWebsite = MainWebsite(url = url)
             WebsiteRepository.save(website.to_json(), website)
-            website_list.append(website)
         else:
-            pass
+            website: MainWebsite = WebsiteRepository.get_by_url(url=url)
+        website_list.append(website)
 
+    # Driver that recives data from browser for each website and url
     web_driver = Web_Driver_Service()
     while True:
-        time.sleep(2)
+        time.sleep(0.1)
+        # Iterate over each website
         for website in website_list:
-            # website.createSoup()
-            internal_urls: list[str] = website.find_links_to_check(web_driver)
 
-            del website.soup
-            website_posted_dates: list[datetime.datetime] = []
+            # Find the internal urls for a website we are searching 
+            internal_urls: set[str] = website.find_links_to_check(web_driver)
 
+            # Make a list to store each internal url's datetime
+            urls_posted_dates: list[datetime.datetime] = []
+
+            # Iterate over each internal url of the website
             for url in internal_urls:
-               url = website.url + url[1:]
-               internal_website = InternalWebsite(url=url, main_website=website, web_driver=web_driver)
+               print("new url!")
+               url = "https://www.ant1live.com/"+ url[1:]
+               internal_website = InternalWebsite(url=url, main_website=website, web_driver=web_driver) # Create an object that stores info for internal urls sites
 
+               # Find posted time of internal site/url   
                posted_time = WebsiteService.find_internal_url_posted_datetime(internal_website) # CHECK THIS
-               if posted_time is not None:
-                    website_posted_dates.append(posted_time)
 
-               # Clean in-website internal site object from memory  
+               # If posted time was found for the url add it to the list    
+               if posted_time is not None:
+                    print(posted_time)
+                    urls_posted_dates.append(posted_time)
+
+               # Clean internal's website object from memory  
                del internal_website
 
-            if website_posted_dates is None or len(website_posted_dates) == 0:
+            
+
+            if urls_posted_dates is None or len(urls_posted_dates) == 0:
                 # send email
                 continue
             
-            latest_before_now = max(d for d in website_posted_dates if d < datetime.datetime.now()) # Todo: must check also timezones that are diferent from my country
+            # Todo: Check whether to use <= from now or < or something else
+            latest_before_now = max(d for d in urls_posted_dates if d < datetime.datetime.now()) # Todo: must check also timezones that are diferent from my country
 
-            if website.last_post_date is not None and website.last_post_date <= latest_before_now :
+            # Remove from links history those that hold datetime that is equal to now in order to check it again later
+            website.internal_links_history = [d for d in urls_posted_dates if d != datetime.datetime.now()] 
+
+            if website.last_post_date is not None and website.last_post_date < latest_before_now : 
                  # Todo: notify code
-                print(f"notify for website: {website.url} time: {website.last_post_date:%H:%M}\n{website_posted_dates}")
+                print(f"notify for website: {website.url} time: {latest_before_now:%H:%M}\n{urls_posted_dates}")
             website.last_post_date = latest_before_now
+    
+        debug = 1
 
-            
-        # ProccessWebsitesLinks.createFirstFile(soup)
-
-        
-
-
-        # ProccessWebsitesLinks.removeStaticLinks
 
 
 
