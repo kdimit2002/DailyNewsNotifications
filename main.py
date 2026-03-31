@@ -107,6 +107,9 @@ def main():
                     print(posted_time)
                     urls_posted_dates[url] = posted_time
 
+               if datetime.datetime.now() >= datetime.datetime(year=2026, month=3, day=31, hour=13, minute=22, second=0):
+                    print("\nURLS: " + " , ".join(internal_urls)+ "\n\n posted urls: " +  " | ".join(urls_posted_dates) + "\n\n posted times: " + " | ".join(map(str, urls_posted_dates.values())) + "\n\n" )
+
                # Clean internal's website object from memory  
                del internal_website
 
@@ -117,11 +120,17 @@ def main():
                 continue
             
             # Todo: Check whether to use <= from now or < or something else
-            latest_before_now = max(d for d in urls_posted_dates.values if d < datetime.datetime.now()) # Todo: must check also timezones that are diferent from my country
+            latest_before_now = max(d for d in urls_posted_dates.values() if d < datetime.datetime.now()) # Todo: must check also timezones that are diferent from my country
 
             # Remove from links history those that hold datetime that is equal to now in order to check it again later
             if website.internal_links_history is not None:
-                website.internal_links_history = set([url for url in website.internal_links_history if urls_posted_dates.get(url) != datetime.datetime.now()])
+                datetime_of_url = next((d for d in urls_posted_dates.values() if d == datetime.datetime.now()), None)
+                if datetime_of_url is not None:
+                    website.internal_links_history.remove(urls_posted_dates.get(datetime_of_url))
+
+
+
+                # website.internal_links_history = set([url for url in website.internal_links_history if urls_posted_dates.get(url) != datetime.datetime.now()])
 
             if website.last_post_date is not None and website.last_post_date < latest_before_now : 
                  # Todo: notify code

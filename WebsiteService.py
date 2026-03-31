@@ -7,7 +7,7 @@ import re
 import re
 import dateparser
 from dateparser.search import search_dates
-import datetime
+from datetime import datetime,timedelta
 from WebsiteModel import InternalWebsite
 
 EN_MINUTES_BEFORE = re.compile(
@@ -87,7 +87,7 @@ def findRecentPostDate(internal_website: InternalWebsite):
     latest_before_now: datetime.datetime = None
     if absolute_post_dates is not None and len(absolute_post_dates) != 0:
         try:
-            latest_before_now = max(d for d in absolute_post_dates if d <= datetime.datetime.now()) # Todo: must check also timezones that are diferent from my country
+            latest_before_now = max(d for d in absolute_post_dates if d <= datetime.now() + timedelta(minutes = 1)) # Todo: must check also timezones that are diferent from my country
         except ValueError:
             latest_before_now = None
     
@@ -116,6 +116,8 @@ def find_internal_url_posted_datetime(internal_website: InternalWebsite):
     
     # print(internal_website.soup )
     url_most_recent_date = findRecentPostDate(internal_website)
+
+    print("FOUND POSTED TIME FOR URL: " + internal_website.url + " DATETIME: " + str(url_most_recent_date))
     # print(url_most_recent_date)
     return url_most_recent_date
 

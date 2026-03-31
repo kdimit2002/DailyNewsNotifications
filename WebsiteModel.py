@@ -51,7 +51,7 @@ class MainWebsite(Website):
     def find_links_to_check(self, web_driver: Web_Driver_Service) -> set[str]:
 
         # Fetches html file
-        self.soup = self.createSoup(web_driver= web_driver)
+        self.soup = self.createSoup(web_driver = web_driver)
 
         # List that will contain all internal site links
         links_set = set()
@@ -64,7 +64,6 @@ class MainWebsite(Website):
 
             # Remove links that have already been checked
             if  self.internal_links_history is not None: # When the Website object is first constructed we store all internal links
-                breakpoint()
                 links_set = links_set - self.internal_links_history
 
         self.__find_internal_links_history()
@@ -86,7 +85,8 @@ class MainWebsite(Website):
     # Serialize object to json
     def to_json(self):
         data = {}
-        data["id"] = self.id
+        if id is not None:
+            data["id"] = self.id
         data["url"] = self.url
         if self.last_post_date is not None:
             data["last_post_date"] = self.last_post_date.isoformat()      
@@ -97,7 +97,7 @@ class MainWebsite(Website):
     
 
     @classmethod
-    def from_json(cls, data: dict) -> "MainWebsite":
+    def to_obj(cls, data: dict) -> "MainWebsite":
         """
         Create a MainWebsite object from Redis JSON.
         """
@@ -121,6 +121,9 @@ class InternalWebsite(Website):
         super().__init__(url)
         self.soup = self.createSoup(web_driver=web_driver)
         self.main_website: MainWebsite = main_website
+        # if main_website.last_post_date is not None:
+        #     print(self.url)
+
 
 
 
